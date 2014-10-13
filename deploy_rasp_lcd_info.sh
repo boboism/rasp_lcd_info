@@ -7,7 +7,8 @@ if [ ! -x /etc/init.d/rasp_lcd_info ]; then
   sudo chmod a+x /etc/init.d/rasp_lcd_info
 fi
 if [ ! -x /etc/rc3.d/S99rasp_lcd_info ]; then
-  sudo ln -sf /etc/init.d/rasp_lcd_info /etc/rc3.d/S99rasp_lcd_info
-  sudo chmod a+x /etc/rc3.d/S99rasp_lcd_info
+  #sudo ln -sf /etc/init.d/rasp_lcd_info /etc/rc3.d/S99rasp_lcd_info
+  #sudo chmod a+x /etc/rc3.d/S99rasp_lcd_info
+  sudo update-rc.d -f rasp_lcd_info defaults 99
 fi
 sudo service rasp_lcd_info start
