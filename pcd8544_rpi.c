@@ -38,6 +38,11 @@ Lesser General Public License for more details.
 #include <stdlib.h>
 #include <string.h>
 #include <sys/sysinfo.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <net/if.h>
 #include "PCD8544.h"
 
 // pin setup
@@ -49,7 +54,9 @@ int _cs = 3;
   
 // lcd contrast 
 //may be need modify to fit your screen!  normal: 30- 90 ,default is:45 !!!maybe modify this value!
-int contrast = 45;  
+// int contrast = 45;  
+// make screen font more deeper
+int contrast = 50;  
   
 int main (void)
 {
@@ -86,26 +93,67 @@ int main (void)
 	  }
 	  
 	  // uptime
-	  char uptimeInfo[15];
+	  char uptimeInfo[13];
 	  unsigned long uptime = sys_info.uptime / 60;
-	  sprintf(uptimeInfo, "Uptime %ld min.", uptime);
+	  sprintf(uptimeInfo, "RUN %ld MIN", uptime);
 	  
 	  // cpu info
-	  char cpuInfo[10]; 
+	  char cpuInfo[13]; 
 	  unsigned long avgCpuLoad = sys_info.loads[0] / 1000;
+	  //sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
 	  sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
+
 	  
 	  // ram info
-	  char ramInfo[10]; 
-	  unsigned long totalRam = sys_info.freeram / 1024 / 1024;
-	  sprintf(ramInfo, "RAM %ld MB", totalRam);
+	  char ramInfo[13]; 
+	  unsigned long freeRam = sys_info.freeram / 1024 / 1024;
+	  unsigned long totalRam = sys_info.totalram / 1024 / 1024;
+	  sprintf(ramInfo, "RAM %ld/%ld MB", freeRam, totalRam);
+          
+          // swap info
+          char swapInfo[13];
+          unsigned long freeSwap = sys_info.freeswap / 1024 / 1024;
+          unsigned long totalSwap = sys_info.totalswap / 1024 / 1024;
+          sprintf(swapInfo, "SWP %ld/%ld MB", freeSwap, totalSwap);
+
+
+          // Ip info
+          char wlanInfo[13];
+	int wlan_fd;
+	struct ifreq wlan_ifr;
+	wlan_fd = socket(AF_INET, SOCK_DGRAM, 0);
+	/* I want to get an IPv4 IP address */
+	wlan_ifr.ifr_addr.sa_family = AF_INET;
+	/* I want IP address attached to "wlan0" */
+	strncpy(wlan_ifr.ifr_name, "wlan0", IFNAMSIZ-1);
+	ioctl(wlan_fd, SIOCGIFADDR, &wlan_ifr);
+	close(wlan_fd);
+	/* display result */
+	sprintf(wlanInfo, "W %s", inet_ntoa(((struct sockaddr_in *)&wlan_ifr.ifr_addr)->sin_addr));         
+	
+          char ethInfo[13];
+	int eth_fd;
+	struct ifreq eth_ifr;
+	eth_fd = socket(AF_INET, SOCK_DGRAM, 0);
+	/* I want to get an IPv4 IP address */
+	eth_ifr.ifr_addr.sa_family = AF_INET;
+	/* I want IP address attached to "eth0" */
+	strncpy(eth_ifr.ifr_name, "eth0", IFNAMSIZ-1);
+	ioctl(eth_fd, SIOCGIFADDR, &eth_ifr);
+	close(eth_fd);
+	/* display result */
+	sprintf(ethInfo, "E %s", inet_ntoa(((struct sockaddr_in *)&eth_ifr.ifr_addr)->sin_addr));         
+
 	  
 	  // build screen
-	  LCDdrawstring(0, 0, "Raspberry Pi:");
-	  LCDdrawline(0, 10, 83, 10, BLACK);
-	  LCDdrawstring(0, 12, uptimeInfo);
-	  LCDdrawstring(0, 20, cpuInfo);
-	  LCDdrawstring(0, 28, ramInfo);
+	  //LCDdrawstring(0, 0, "Raspberry Pi:");
+	  //LCDdrawline(0, 10, 83, 10, BLACK);
+	  LCDdrawstring(0, 0, uptimeInfo);
+	  LCDdrawstring(0, 8, cpuInfo);
+	  LCDdrawstring(0, 16, ramInfo);
+	  LCDdrawstring(0, 24, swapInfo);
+	  LCDdrawstring(0, 32, wlanInfo);
+	  LCDdrawstring(0, 40, ethInfo);
 	  LCDdisplay();
 	  
 	  delay(1000);
