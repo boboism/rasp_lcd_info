@@ -1,0 +1,18 @@
+#! /bin/sh
+### BEGIN INIT INFO
+#N=/usr/local/bin/rasp_lcd_info
+set -e
+case "$1" in
+  start)
+      # make sure privileges don't persist across reboots
+      nohup /usr/local/bin/rasp_lcd_info &
+      ;;
+  stop)
+      pkill rasp_lcd_info
+      ;;
+  restart)
+      pkill rasp_lcd_info
+      nohup /usr/local/bin/rasp_lcd_info &
+      ;;
+esac
+exit 0

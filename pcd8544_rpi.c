@@ -56,7 +56,7 @@ int _cs = 3;
 //may be need modify to fit your screen!  normal: 30- 90 ,default is:45 !!!maybe modify this value!
 // int contrast = 45;  
 // make screen font more deeper
-int contrast = 50;  
+int contrast = 55;  
   
 int main (void)
 {
@@ -101,7 +101,7 @@ int main (void)
 	  char cpuInfo[13]; 
 	  unsigned long avgCpuLoad = sys_info.loads[0] / 1000;
 	  //sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
-	  sprintf(cpuInfo, "CPU %ld%%", avgCpuLoad);
+	  sprintf(cpuInfo, "CPU %ld%%, %ldm", avgCpuLoad, uptime);
 
 	  
 	  // ram info
@@ -118,7 +118,8 @@ int main (void)
 
 
           // Ip info
-          char wlanInfo[13];
+          char ipInfo[14], wlan_ip[14], eth_ip[14];
+	// wlan
 	int wlan_fd;
 	struct ifreq wlan_ifr;
 	wlan_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -129,9 +130,9 @@ int main (void)
 	ioctl(wlan_fd, SIOCGIFADDR, &wlan_ifr);
 	close(wlan_fd);
 	/* display result */
-	sprintf(wlanInfo, "W %s", inet_ntoa(((struct sockaddr_in *)&wlan_ifr.ifr_addr)->sin_addr));         
-	
-          char ethInfo[13];
+	sprintf(wlan_ip, "%s", inet_ntoa(((struct sockaddr_in *)&wlan_ifr.ifr_addr)->sin_addr));
+
+	// eth
 	int eth_fd;
 	struct ifreq eth_ifr;
 	eth_fd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -142,18 +143,24 @@ int main (void)
 	ioctl(eth_fd, SIOCGIFADDR, &eth_ifr);
 	close(eth_fd);
 	/* display result */
-	sprintf(ethInfo, "E %s", inet_ntoa(((struct sockaddr_in *)&eth_ifr.ifr_addr)->sin_addr));         
+	sprintf(eth_ip, "%s", inet_ntoa(((struct sockaddr_in *)&eth_ifr.ifr_addr)->sin_addr));         
+
+	if(strcmp(wlan_ip, "0.0.0.0") == 0) {
+		sprintf(ipInfo, "%s", eth_ip);
+	} else {
+		sprintf(ipInfo, "%s", wlan_ip);
+	}
 
 	  
 	  // build screen
 	  //LCDdrawstring(0, 0, "Raspberry Pi:");
 	  //LCDdrawline(0, 10, 83, 10, BLACK);
-	  LCDdrawstring(0, 0, uptimeInfo);
-	  LCDdrawstring(0, 8, cpuInfo);
-	  LCDdrawstring(0, 16, ramInfo);
-	  LCDdrawstring(0, 24, swapInfo);
-	  LCDdrawstring(0, 32, wlanInfo);
-	  LCDdrawstring(0, 40, ethInfo);
+	  //LCDdrawstring(0, 0, uptimeInfo);
+	  LCDdrawstring(0, 0, cpuInfo);
+	  LCDdrawstring(0, 8, ramInfo);
+	  LCDdrawstring(0, 16, swapInfo);
+	  LCDdrawstring(0, 24, ipInfo);
+	  //LCDdrawstring(0, 32, ethInfo);
 	  LCDdisplay();
 	  
 	  delay(1000);
